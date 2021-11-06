@@ -129,8 +129,10 @@ class MyTestCase(unittest.TestCase):
         print(len(foo))
 
     def test_us_timezones(self):
-        result, result2 = timezone_rules(pytz.country_timezones['US'], simplifyranges=False)
-        pprint(result2)
+        tzs = pytz.country_timezones['US']
+        # tzs += pytz.country_timezones['CA']
+        result, result2 = timezone_rules(tzs, simplifyranges=False)
+        pprint(list(result.keys()))
 
     def testlist2ranges(self):
         thelist = [1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006]
