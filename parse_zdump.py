@@ -124,6 +124,10 @@ def timezone_rules(tzs, simplifyranges=True):
 
 class MyTestCase(unittest.TestCase):
 
+    def test_all_timezones(self):
+        foo = pytz.all_timezones
+        print(len(foo))
+
     def test_us_timezones(self):
         result, result2 = timezone_rules(pytz.country_timezones['US'], simplifyranges=False)
         pprint(result2)

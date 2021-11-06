@@ -1,4 +1,6 @@
+**.png
 **.swp
 /requirements.in
 venv/
 .idea/
+/data/
