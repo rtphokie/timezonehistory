@@ -1,0 +1,4 @@
+**.swp
+/requirements.in
+venv/
+.idea/
