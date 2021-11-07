@@ -9,7 +9,7 @@ import pytz
 import pyproj
 import numpy as np
 from data import legislation
-from parse_zdump import timezone_rules, sortrules
+from parse_zdump import timezone_rules
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.colors as mcolors
 
@@ -98,10 +98,10 @@ def plottzs(label=False, world=False, title=None,
 
     # gdf = gdf.reset_index()
     gdf['rule'] = gdf.apply(lambda row: possible_rules.index(ruledata[row['TZID']]), axis=1)
-    gdf['rule'] = gdf['rule'].replace(0, np.NaN)
-    gdf['nodst'] = gdf.apply(lambda row: possible_rules.index(ruledata[row['TZID']]), axis=1)
-    # gdf['nodst']=gdf[gdf['nodst'] > 0.0] = np.NaN
-    gdf['nodst'] = gdf['nodst'].apply(lambda x: x if x == 0 else np.NaN)
+    gdf['rule'] = gdf['rule'].replace(0.0, np.NaN)
+    # gdf['nodst'] = gdf.apply(lambda row: possible_rules.index(ruledata[row['TZID']]), axis=1)
+    # # gdf['nodst']=gdf[gdf['nodst'] > 0.0] = np.NaN
+    # gdf['nodst'] = gdf['nodst'].apply(lambda x: x if x == 0 else np.NaN)
 
     if world:
         mill = pyproj.Proj(proj='robin', ellps='WGS84', datum='WGS84')
@@ -115,8 +115,6 @@ def plottzs(label=False, world=False, title=None,
     cmap = get_continuous_cmap(seasonal_hex_color_list)
 
     cmap.set_bad(color='black', alpha=1.)
-    vmin = gdf.rule.min()
-    vmax = gdf.rule.max()
     my_mapi2 = gdf.plot(ax=ax, color='black', column='nodst', edgecolor='black')
     my_map = gdf.plot(ax=my_mapi2, cmap=cmap, column='rule', edgecolor='black')
     print(gdf.rule)
@@ -160,72 +158,6 @@ def visualize_dst_legislation():
     df.plot(cmap='viridis', column='LEG', ax=ax, edgecolor='black')
     plt.tight_layout()
     plt.savefig('dst_legislation.png', dpi=600)
-
-
-class MyTestCase(unittest.TestCase):
-
-    def setUp(self):
-        # return results_rule_tz_years, results_year_rule_tz
-        ver = 'small'
-
-        tzs = []
-        if ver == 'small':
-            tzs += pytz.country_timezones['US']
-            tzs += pytz.country_timezones['CA']
-            tzs += pytz.country_timezones['MX']
-        else:
-            ver = 'all'
-            tzs = pytz.all_timezones
-        try:
-            fp = open(f"results_rule_tz_years_{ver}.p", "rb")
-            self.results_rule_tz_years = pickle.load(fp)
-            fp.close()
-            fp = open(f"results_year_rule_tz_{ver}.p", "rb")
-            self.results_year_rule_tz = pickle.load(fp)
-            fp.close()
-
-        except:
-            self.results_rule_tz_years, self.results_year_rule_tz = timezone_rules(tzs, simplifyranges=False)
-            fp = open(f"results_rule_tz_years_{ver}.p", "wb")
-            pickle.dump(self.results_rule_tz_years, fp)
-            fp.close()
-            fp = open(f"results_year_rule_tz_{ver}.p", "wb")
-            pickle.dump(self.results_year_rule_tz, fp)
-            fp.close()
-
-    def test_plot_CONUS_tz_rules(self):
-        for year in range(2021, 2022):
-            rules = list(self.results_year_rule_tz[year].values())
-            plottzs(ruledata=self.results_year_rule_tz[year], world=False,
-                    label=True, possible_rules=sortrules(rules), title=year)
-
-
-    def test_plot_world_tz_rules(self):
-        for year in range(2021, 2022):
-            rules = list(self.results_year_tz_rule[year].values())
-            plottzs(ruledata=results_year_tz_rule[year], world=True,
-                    label=True, possible_rules=sortrules(rules), title=year)
-
-    @unittest.skip("unneeded")
-    def test_custom_colorbar(self):
-        import matplotlib.pyplot as plt
-        import matplotlib as mpl
-
-        fig, ax = plt.subplots(figsize=(16, 9))
-        fig.subplots_adjust(bottom=0.8)
-
-        cmap = get_continuous_cmap(seasonal_hex_color_list)
-        norm = mpl.colors.Normalize(vmin=0, vmax=13)
-
-        cb1 = mpl.colorbar.ColorbarBase(ax, cmap=cmap, norm=norm, orientation='horizontal')
-        cb1.set_label('Start of Daylight Saving')
-        ticklabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        cb1.set_ticks(np.linspace(0, 12, len(ticklabels)))
-        cb1.ax.tick_params(labelsize=25)
-        cb1.ax.set_xticklabels(ticklabels)
-
-        fig.show()
-
 
 
 if __name__ == '__main__':
