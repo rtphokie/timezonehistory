@@ -65,6 +65,7 @@ def sortrules(rulestrings):
     dow = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     for x in list(rulestrings): # build dictionary with keys that are more sortable
+        print(x)
         atoms = x.split(' ')
         if 'DST' not in x:
             tmp[f"{months.index(atoms[3]):02} {atoms[0][0]} {dow.index(atoms[1]):02}  {months.index(atoms[8]):02} {atoms[5][0]} {dow.index(atoms[6]):02} "] = x
@@ -161,7 +162,7 @@ def timezone_rules(tzs, simplifyranges=True):
             for year in results_rule_tz_years[rule][tz]:
                 results_year_tz_rule[year][tz] = rule
 
-    return results_rule_tz_years, results_year_rule_tz, results_year_tz_rule
+    return results_rule_tz_years, results_year_rule_tz
 
 
 class MyTestCase(unittest.TestCase):
@@ -169,7 +170,7 @@ class MyTestCase(unittest.TestCase):
     def test_us_timezones(self):
         tzs = pytz.country_timezones['US']
         # tzs += pytz.country_timezones['CA']
-        result, result2, result3 = timezone_rules(tzs, simplifyranges=False)
+        results_rule_tz_years, results_year_rule_tz, = timezone_rules(tzs, simplifyranges=False)
         pprint(list(result.keys()))
 
     def testlist2ranges(self):
