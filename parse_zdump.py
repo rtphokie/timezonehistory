@@ -1,4 +1,5 @@
 import datetime
+from tqdm import tqdm
 import unittest
 from pprint import pprint
 import subprocess
@@ -52,6 +53,25 @@ def listtoranges(thelist):
         result[len(result) - 1] += f"-{prev}"
     return result
 
+def sortrules(rulestrings):
+    '''
+    sorts a list of rules of the form ordinal dow in month - ordinal dow in month
+    e.g. 1st Mon in Jan - last Sun in Mar
+
+    :param rulestrings: list of rules
+    :return: sorted list of rules
+    '''
+    tmp = {}
+    dow = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    for x in list(rulestrings): # build dictionary with keys that are more sortable
+        atoms = x.split(' ')
+        if 'DST' not in x:
+            tmp[f"{months.index(atoms[3]):02} {atoms[0][0]} {dow.index(atoms[1]):02}  {months.index(atoms[8]):02} {atoms[5][0]} {dow.index(atoms[6]):02} "] = x
+    result = ['no DST']
+    for key in sorted(tmp):
+        result.append(tmp[key])
+    return result
 
 def timezone_rules(tzs, simplifyranges=True):
     '''
@@ -60,31 +80,42 @@ def timezone_rules(tzs, simplifyranges=True):
     :return: dictionaries:
              DST rules, the timezones that use them, and the years they were in effect
     '''
-    zdump_re_pattern = '([\w\/-]+) [\w\s:]+ UTC = ([\w\s:]+) (\d+) ([\w-]+) isdst=(\d)'
+    zdump_re_pattern = '([\w\/-]+) [\w\s:]+ UTC = ([\w\s:]+) (\d+) ([\w\+-]+) isdst=(\d)'
     results_rule_tz_years = {'no DST': {}}
     results_year_rule_tz = {}
-    for tz in tzs:
+    years=[]
+
+    for tz in tqdm(tzs):
         result = subprocess.run(['zdump', '-v', '-c', '2022', tz], stdout=subprocess.PIPE)
         lines = result.stdout.decode('utf-8').split("\n")
         r0 = re.match(zdump_re_pattern, lines[0])
         r1 = re.match(zdump_re_pattern, lines[-2])
+
+        if r0 is None:
+            continue
         firstyear = int(r0.group(3))
         lastyear = int(r1.group(3))
+
         allyears = list(range(firstyear, lastyear + 1))
         results_rule_tz_years['no DST'][tz] = allyears
         for year in allyears:
             if year not in results_year_rule_tz.keys():
                 results_year_rule_tz[year]={'no DST': []}
             results_year_rule_tz[year]['no DST'].append(tz)
+
+
         # pattern is the lines of isdst=1, isdst=1, isdst=0.  Cal date in first line is the beginning of DST, Cal date of third line is the end.
         prevdst = None
         prevdate = None
+
         for line in lines:
             r = re.match(zdump_re_pattern, line)
             if r:
                 date = r.group(2)[4:]
                 year = int(r.group(3))
                 dst = int(r.group(5))
+                years.append(year)
+
                 dt = arrow.get(f'{year} {date} {tz}'.replace('  ', ' '), 'YYYY MMM D h:m:s ZZZ').shift(seconds=+1)
                 if dst:
                     dt = dt.shift(seconds=+1)
@@ -119,19 +150,26 @@ def timezone_rules(tzs, simplifyranges=True):
             for tzstr in results_rule_tz_years[rule].keys():
                 results_rule_tz_years[rule][tzstr] = listtoranges(results_rule_tz_years[rule][tzstr])
 
-    return results_rule_tz_years, results_year_rule_tz
+    results_year_tz_rule = {}
+    for year in range(min(years), max(years)+1):
+        results_year_tz_rule[year]={}
+        for tz in tzs:
+            if tz not in results_year_tz_rule[year].keys():
+                results_year_tz_rule[year][tz]='No DST'
+    for rule in results_rule_tz_years.keys():
+        for tz in results_rule_tz_years[rule].keys():
+            for year in results_rule_tz_years[rule][tz]:
+                results_year_tz_rule[year][tz] = rule
+
+    return results_rule_tz_years, results_year_rule_tz, results_year_tz_rule
 
 
 class MyTestCase(unittest.TestCase):
 
-    def test_all_timezones(self):
-        foo = pytz.all_timezones
-        print(len(foo))
-
     def test_us_timezones(self):
         tzs = pytz.country_timezones['US']
         # tzs += pytz.country_timezones['CA']
-        result, result2 = timezone_rules(tzs, simplifyranges=False)
+        result, result2, result3 = timezone_rules(tzs, simplifyranges=False)
         pprint(list(result.keys()))
 
     def testlist2ranges(self):
