@@ -96,36 +96,37 @@ def plottzs(label=False, world=False, title=None,
     gdf['coords'] = gdf['geometry'].apply(lambda x: x.representative_point().coords[:])
     gdf['coords'] = [coords[0] for coords in gdf['coords']]
 
-    # gdf = gdf.reset_index()
-    gdf['rule'] = gdf.apply(lambda row: possible_rules.index(ruledata[row['TZID']]), axis=1)
+    for tz in list(gdf['TZID']):
+        if tz not in ruledata.keys():
+            raise ValueError(f"{tz} not in")
+
+    gdf['rule'] = gdf.apply(lambda row: ruledata[row['TZID']], axis=1)
+    gdf['nodst'] = gdf['rule'].copy()
     gdf['rule'] = gdf['rule'].replace(0.0, np.NaN)
-    # gdf['nodst'] = gdf.apply(lambda row: possible_rules.index(ruledata[row['TZID']]), axis=1)
-    # # gdf['nodst']=gdf[gdf['nodst'] > 0.0] = np.NaN
-    # gdf['nodst'] = gdf['nodst'].apply(lambda x: x if x == 0 else np.NaN)
+    gdf['nodst'] = gdf['nodst'].apply(lambda x: x if x == 0.0 else np.NaN)
 
     if world:
         mill = pyproj.Proj(proj='robin', ellps='WGS84', datum='WGS84')
         gdf = gdf.to_crs(crs=mill.srs)
     else:  # CONUS
         mill = pyproj.Proj(proj='mill', ellps='WGS84', datum='WGS84')
-        ax.set_xlim(-180, -50)
-        ax.set_ylim(15, 75)
+        # ax.set_xlim(-180, -50)
+        # ax.set_ylim(15, 75)
 
-    # cmap = plt.cm.get_cmap(cmap_name).copy()
     cmap = get_continuous_cmap(seasonal_hex_color_list)
+    cmap_black = get_continuous_cmap(seasonal_hex_color_list)
 
     cmap.set_bad(color='black', alpha=1.)
-    my_mapi2 = gdf.plot(ax=ax, color='black', column='nodst', edgecolor='black')
-    my_map = gdf.plot(ax=my_mapi2, cmap=cmap, column='rule', edgecolor='black')
-    print(gdf.rule)
+    my_map = gdf.plot(ax=ax, cmap=cmap, column='rule', edgecolor='black')
+    my_mapi2 = gdf.plot(ax=my_map, cmap=plt.get_cmap('gist_earth'), column='nodst', edgecolor='black')
 
     # label
     if label:
         for idx, row in gdf.iterrows():
-            # print(row['TZID'], row['geometry'].area)
             if row['geometry'].area > 10:
-                plt.annotate(s=row['TZID'].replace('America/', ''), xy=row['coords'],
-                             horizontalalignment='center', color='white')
+                plt.text(s=row['TZID'].replace('America/', ''),
+                         x=row['coords'][0], y=row['coords'][1],
+                         horizontalalignment='center', color='white')
     if title is not None:
         plt.title(title, fontsize=20)
 
@@ -134,7 +135,6 @@ def plottzs(label=False, world=False, title=None,
     # # color bar
     cax = divider.append_axes('bottom', size='5%', pad=0.05)
     data = np.arange(0, 13, 1).reshape(1, 13)
-    print(data)
     im = ax.imshow(data, cmap=cmap)
     norm = mpl.colors.Normalize(vmin=1, vmax=13)
     cbar = fig.colorbar(im, cax=cax, orientation="horizontal", pad=0.2)

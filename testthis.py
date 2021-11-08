@@ -26,7 +26,6 @@ class MyMapping(unittest.TestCase):
             fp = open(f"results_year_tz_codedrule{ver}.p", "rb")
             self.results_year_tz_codedrule = pickle.load(fp)
             fp.close()
-            raise
 
         except:
             self.results_year_rule_tz, self.results_year_tz_codedrule = timezone_rules(tzs)
@@ -39,14 +38,15 @@ class MyMapping(unittest.TestCase):
 
     def test_plot_CONUS_tz_rules(self):
         # pprint(self.results_year_rule_tz[2021])
-        pprint(self.results_year_tz_codedrule[2021])
-        for year in range(2021, 2022):
+        # pprint(self.results_year_tz_codedrule[2021])
+        for year in range(2000, 2022):
             plottzs(ruledata=self.results_year_tz_codedrule[year],
                     world=False, label=True, title=year)
 
     def test_plot_world_tz_rules(self):
         for year in range(2021, 2022):
-            plottzs(ruledata=self.results_year_tz_rule[year], world=True, label=True, title=year)
+            plottzs(ruledata=self.results_year_tz_codedrule[year],
+                    world=True, label=True, title=year)t
 
     @unittest.skip("unneeded")
     def test_custom_colorbar(self):
