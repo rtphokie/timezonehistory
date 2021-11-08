@@ -1,8 +1,8 @@
-import unittest
+from mapit import plottzs
 from pprint import pprint
-import pytz
 import pickle
-from mapit import plottzs, timezone_rules
+import pytz
+import unittest
 
 
 class MyMapping(unittest.TestCase):
@@ -44,9 +44,9 @@ class MyMapping(unittest.TestCase):
                     world=False, label=True, title=year)
 
     def test_plot_world_tz_rules(self):
-        for year in range(2021, 2022):
+        for year in range(1915, 1916):
             plottzs(ruledata=self.results_year_tz_codedrule[year],
-                    world=True, label=True, title=year)t
+                    world=True, label=False, title=year)
 
     @unittest.skip("unneeded")
     def test_custom_colorbar(self):
@@ -108,3 +108,19 @@ class tz_dump_tests(unittest.TestCase):
             except:
                 pass
         pprint(prob)
+
+class fiximages(unittest.TestCase):
+
+    def test_concat(self):
+        from tqdm import tqdm
+        def get_concat_v(im1, im2):
+            dst = Image.new('RGB', (im1.width, im1.height + im2.height))
+            dst.paste(im1, (0, 0))
+            dst.paste(im2, (0, im1.height))
+            return dst
+
+        from PIL import Image
+        im2 = Image.open('scale.jpg')
+        for year in tqdm(range(1915,2022)):
+            im1 = Image.open(f'world_{year}.png')
+            get_concat_v(im1, im2).save(f'world_{year}_scale.jpg')

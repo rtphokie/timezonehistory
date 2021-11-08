@@ -1,17 +1,14 @@
-import unittest
-import pickle
-from pprint import pprint
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import geopandas
-import pandas as pd
-import pytz
-import pyproj
-import numpy as np
 from data import legislation
-from parse_zdump import timezone_rules
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from tqdm import tqdm
+import geopandas
+import matplotlib as mpl
 import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pickle
+import pyproj
 
 pd.set_option("display.max_rows", None, "display.max_columns", None)
 
@@ -110,8 +107,8 @@ def plottzs(label=False, world=False, title=None,
         gdf = gdf.to_crs(crs=mill.srs)
     else:  # CONUS
         mill = pyproj.Proj(proj='mill', ellps='WGS84', datum='WGS84')
-        # ax.set_xlim(-180, -50)
-        # ax.set_ylim(15, 75)
+        ax.set_xlim(-180, -50)
+        ax.set_ylim(15, 75)
 
     cmap = get_continuous_cmap(seasonal_hex_color_list)
     cmap_black = get_continuous_cmap(seasonal_hex_color_list)
@@ -133,16 +130,25 @@ def plottzs(label=False, world=False, title=None,
     divider = make_axes_locatable(ax)
 
     # # color bar
-    cax = divider.append_axes('bottom', size='5%', pad=0.05)
-    data = np.arange(0, 13, 1).reshape(1, 13)
-    im = ax.imshow(data, cmap=cmap)
-    norm = mpl.colors.Normalize(vmin=1, vmax=13)
-    cbar = fig.colorbar(im, cax=cax, orientation="horizontal", pad=0.2)
-    ticklabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    cbar.set_ticks(np.linspace(0, 12, len(ticklabels)))  # start at 0 (Jan 1) end at 13 (Jan 1 following year)
-    cbar.ax.set_xticklabels(ticklabels)  # horizontal colorbar
+    if not world:
+        cax = divider.append_axes('bottom', size='5%', pad=0.05)
+        data = np.arange(0, 13, 1).reshape(1, 13)
+        im = ax.imshow(data, cmap=cmap)
+        norm = mpl.colors.Normalize(vmin=1, vmax=13)
+        cbar = fig.colorbar(im, cax=cax, orientation="horizontal", pad=0.2)
+        ticklabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        cbar.set_ticks(np.linspace(0, 12, len(ticklabels)))  # start at 0 (Jan 1) end at 13 (Jan 1 following year)
+        cbar.ax.set_xticklabels(ticklabels)  # horizontal colorbar
 
-    plt.show()
+    ax.set_axis_off()
+    plt.tight_layout()
+    if world:
+        plt.savefig(f'world_{title:04}.png', dpi=600)
+    else:
+        plt.savefig(f'north_america_{title:04}.png', dpi=600)
+
+
+    # plt.show()
 
 
 def visualize_dst_legislation():
@@ -162,4 +168,9 @@ def visualize_dst_legislation():
 
 if __name__ == '__main__':
     # visualize_dst_legislation()
-    unittest.main()
+    fp = open(f"results_year_tz_codedruleall.p", "rb")
+    results_year_tz_codedrule = pickle.load(fp)
+    fp.close()
+    for year in tqdm(range(1915, 2022)):
+        plottzs(ruledata=results_year_tz_codedrule[year],
+                world=False, label=False, title=year)
