@@ -29,34 +29,6 @@ class MappingUnitTests(unittest.TestCase):
             fp.close()
             print("reparsed")
 
-    # def setUp_old(self):
-    #     # return results_rule_tz_years, results_year_rule_tz
-    #     ver = 'all'
-    #
-    #     tzs = []
-    #     if ver == 'small':
-    #         tzs += pytz.country_timezones['US']
-    #         tzs += pytz.country_timezones['CA']
-    #         tzs += pytz.country_timezones['MX']
-    #     else:
-    #         ver = 'all'
-    #         tzs = pytz.common_timezones
-    #     try:
-    #         fp = open(f"results_year_rule_tz{ver}.p", "rb")
-    #         self.results_year_rule_tz = pickle.load(fp)
-    #         fp.close()
-    #         fp = open(f"results_year_tz_codedrule{ver}.p", "rb")
-    #         self.results_year_tz_codedrule = pickle.load(fp)
-    #         fp.close()
-    #     except:
-    #         self.results_year_rule_tz, self.results_year_tz_codedrule = timezone_rules(tzs)
-    #         fp = open(f"results_year_rule_tz{ver}.p", "wb")
-    #         pickle.dump(self.results_year_rule_tz, fp)
-    #         fp.close()
-    #         fp = open(f"results_year_tz_codedrule{ver}.p", "wb")
-    #         pickle.dump(self.results_year_tz_codedrule, fp)
-    #         fp.close()
-
     def test_navajo_nation(self):
         navajo_nation()
 
