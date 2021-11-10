@@ -156,7 +156,7 @@ def plottzs(label=False, world=False, title=None, ruledata=None, dpi=120):
     if world:
         filename=f'frames/world/world_{dpi:04}_{title:04}.png'
         plt.savefig(filename,dpi=dpi)
-        im_scale = Image.open('scale.png')
+        im_scale = Image.open('scale_1920.png')
         newpath = f'frames/world_scale/world_{dpi:04}_{title}_scale.png'
         im_map = Image.open(filename)
         im_background = Image.new('RGB', (im_map.width, im_map.height), (255, 255, 255))
@@ -214,7 +214,7 @@ if __name__ == '__main__':
     links, offset, rules = parse_rules_file()
 
     yearmapping = {}
-    for year in tqdm(range(1915, 2022), desc='plotting maps'):
+    for year in tqdm(range(1918, 2022), desc='plotting maps'):
         yearmapping[year] = {}
         for tz in rules.keys():
             if year in rules[tz].keys():
