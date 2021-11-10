@@ -81,8 +81,7 @@ def parse_rules_file(filename='tzdb-2021e/to2050.tzs'):
             dt = arrow.get(f"{atoms[0]} {atoms[1]}", 'YYYY-MM-DD hh:mm:ss')
             if len(atoms) == 5:
                 rules[tz][dt.year] = {'dst': {'dt':   dt, 'offset': atoms[2], 'utc_offset': newoffset, 'abbrev': atoms[3] if len(atoms) >= 4 else None,
-                                              'line': line, 'ord': ordmonthday(dt)}, 'dst': dst
-                                      }
+                                              'line': line, 'ord': ordmonthday(dt), 'dst': dst}}
             else:
                 if prevyear not in rules[tz]:
                     prevyear = dt.year
