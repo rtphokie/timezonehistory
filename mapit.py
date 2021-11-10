@@ -166,6 +166,7 @@ def plottzs(label=False, world=False, title=None, ruledata=None, dpi=120):
 
     else:
         plt.savefig(f'frames/north_america/north_america_{dpi:04}_{title:04}.png', dpi=dpi)
+    del fig
 
 
 
