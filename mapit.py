@@ -156,7 +156,9 @@ def visualize_dst_legislation():
     #
     gdf = geopandas.read_file('data/cb_2018_us_state_20m.shp')
     aeqd = pyproj.Proj(proj='aeqd', ellps='WGS84', datum='WGS84', lat_0=39.0, lon_0=-98.5).srs
-    df = df.to_crs(crs=aeqd)  # switch to mercator projection around US centroid
+    gdf = gdf.to_crs(crs=aeqd)  # switch to mercator projection around US centroid
+
+
 
     # map legislation status onto a new column
     df['LEG'] = df['NAME'].str.lower().map(legislation)
@@ -164,6 +166,29 @@ def visualize_dst_legislation():
     df.plot(cmap='viridis', column='LEG', ax=ax, edgecolor='black')
     plt.tight_layout()
     plt.savefig('dst_legislation.png', dpi=600)
+
+def navajo_nation():
+    ''' data source, US Census Bureau'''
+    fig, ax = plt.subplots(figsize=(16, 9))
+    gdf = geopandas.read_file('data/cb_2018_us_aiannh_500k.shp')
+    native_american_lands = gdf[['geometry', 'NAME']]
+    gdf2 = geopandas.read_file('data/usa-states-census-2014.shp')
+    states = gdf2[['geometry', 'NAME']]
+    all = states.append(native_american_lands)
+    gdf_sw = all[all['NAME'].isin(['Navajo Nation', 'Hopi', 'Arizona', 'New Mexico', 'Colorado', 'Utah'])]
+    gdf_sw['TZ'] = gdf_sw['NAME'].apply(lambda x: 'MST' if x in ['Arizona', 'Hopi'] else 'MDT')
+
+    print(gdf_sw)
+    print(states)
+
+    # map legislation status onto a new column
+    # df['LEG'] = df['NAME'].str.lower().map(legislation)
+
+    gdf_sw.plot(cmap='Accent', column='TZ', ax=ax, edgecolor='black', alpha=0.8)
+    plt.tight_layout()
+    # plt.savefig('navajo_nation.png', dpi=600)
+    plt.savefig('AZNMCOUT.png', dpi=600)
+    plt.show()
 
 
 if __name__ == '__main__':
