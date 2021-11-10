@@ -4,6 +4,7 @@ import re
 import math
 from dateutil.relativedelta import relativedelta
 from datetime import timedelta
+from tqdm import tqdm
 
 pattern_zone = 'TZ="([\/\w]+)"'
 pattern_link = 'Link\s+([+\/\w]+)\s+([_\/\w]+)'
@@ -40,7 +41,7 @@ def parse_rules_file(filename='tzdb-2021e/to2050.tzs'):
     rules = {}
     offset = {}
     tz = None
-    for line in lines:
+    for line in tqdm(lines, desc='parsing rules'):
         line = line.strip()
         if re.match(pattern_skip, line):
             continue
@@ -80,13 +81,14 @@ def parse_rules_file(filename='tzdb-2021e/to2050.tzs'):
             dt = arrow.get(f"{atoms[0]} {atoms[1]}", 'YYYY-MM-DD hh:mm:ss')
             if len(atoms) == 5:
                 rules[tz][dt.year] = {'dst': {'dt':   dt, 'offset': atoms[2], 'utc_offset': newoffset, 'abbrev': atoms[3] if len(atoms) >= 4 else None,
-                                              'line': line, 'ord': ordmonthday(dt)}}
+                                              'line': line, 'ord': ordmonthday(dt)}, 'dst': dst
+                                      }
             else:
                 if prevyear not in rules[tz]:
                     prevyear = dt.year
                     rules[tz][prevyear] = {'st': {}}
                 rules[tz][prevyear]['st'] = {'dt':   dt, 'offset': atoms[2], 'utc_offset': newoffset, 'abbrev': atoms[3] if len(atoms) >= 4 else None,
-                                             'line': line, 'ord': ordmonthday(dt)}
+                                             'line': line, 'ord': ordmonthday(dt), 'dst': dst}
             prevyear = dt.year
         elif rT:
             tz = rT.group(1)

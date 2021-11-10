@@ -9,6 +9,9 @@ import numpy as np
 import pandas as pd
 import pickle
 import pyproj
+from PIL import Image
+from tzdatabase_parse import parse_rules_file
+from pprint import pprint
 
 pd.set_option("display.max_rows", None, "display.max_columns", None)
 
@@ -82,8 +85,16 @@ def make_colormap(seq):
     return mcolors.LinearSegmentedColormap('CustomMap', cdict)
 
 
-def plottzs(label=False, world=False, title=None,
-            ruledata=None, possible_rules=None):
+def plottzs(label=False, world=False, title=None, ruledata=None, dpi=120):
+    '''
+    create cloropleth based on start date of daylight savings
+    :param label: label ploygons with timzone name
+    :param world: plots a world map if true, north america otherwise
+    :param title: title to give the plot, e.g. the year
+    :param ruledata: dictionary indexed by timezone name (e.g. Americas/Denver) 
+                     expects a float formated by tzdatabase_parse.ordmonthday
+    :return: 
+    '''
     # https://proj.org/
     fig, ax = plt.subplots(figsize=(16, 9))
     ax.set_aspect('equal')
@@ -95,7 +106,7 @@ def plottzs(label=False, world=False, title=None,
 
     for tz in list(gdf['TZID']):
         if tz not in ruledata.keys():
-            raise ValueError(f"{tz} not in")
+            ruledata[tz]=0
 
     gdf['rule'] = gdf.apply(lambda row: ruledata[row['TZID']], axis=1)
     gdf['nodst'] = gdf['rule'].copy()
@@ -143,12 +154,20 @@ def plottzs(label=False, world=False, title=None,
     ax.set_axis_off()
     plt.tight_layout()
     if world:
-        plt.savefig(f'world_{title:04}.png', dpi=600)
+        filename=f'frames/world/world_{dpi:04}_{title:04}.png'
+        plt.savefig(filename,dpi=dpi)
+        im_scale = Image.open('scale.png')
+        newpath = f'frames/world_scale/world_{dpi:04}_{title}_scale.png'
+        im_map = Image.open(filename)
+        im_background = Image.new('RGB', (im_map.width, im_map.height), (255, 255, 255))
+        im_background.paste(im_map, (0, -50), im_map)
+        im_background.paste(im_scale, (0, im_map.height - im_scale.height), im_scale)
+        im_background.save(newpath)
+
     else:
-        plt.savefig(f'north_america_{title:04}.png', dpi=600)
+        plt.savefig(f'frames/north_america/north_america_{dpi:04}_{title:04}.png', dpi=dpi)
 
 
-    # plt.show()
 
 
 def visualize_dst_legislation():
@@ -192,10 +211,18 @@ def navajo_nation():
 
 
 if __name__ == '__main__':
-    # visualize_dst_legislation()
-    fp = open(f"results_year_tz_codedruleall.p", "rb")
-    results_year_tz_codedrule = pickle.load(fp)
-    fp.close()
-    for year in tqdm(range(1915, 2022)):
-        plottzs(ruledata=results_year_tz_codedrule[year],
-                world=False, label=False, title=year)
+    links, offset, rules = parse_rules_file()
+
+    yearmapping = {}
+    for year in tqdm(range(1915, 2022), desc='plotting maps'):
+        yearmapping[year] = {}
+        for tz in rules.keys():
+            if year in rules[tz].keys():
+                if 'dst' in rules[tz][year].keys():
+                    try:
+                        yearmapping[year][tz] = rules[tz][year]['dst']['ord'][1]
+                    except Exception as e:
+                        print(e)
+                        pprint(rules[tz][year])
+        plottzs(ruledata=yearmapping[year], world=False, label=False, title=year)
+        plottzs(ruledata=yearmapping[year], world=True, label=False, title=year)

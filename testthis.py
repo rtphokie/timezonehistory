@@ -3,7 +3,7 @@ from pprint import pprint
 import pickle
 import pytz
 import unittest
-from PIL import Image
+import numpy as np
 from tqdm import tqdm
 from datetime import datetime
 from parse_zdump import timezone_rules, ordmonthday, listtoranges
@@ -14,34 +14,48 @@ from tzdatabase_parse import parse_rules_file
 # /usr/share/zoneinfo
 
 class MappingUnitTests(unittest.TestCase):
-
-    def setUp_old(self):
-        # return results_rule_tz_years, results_year_rule_tz
-        ver = 'all'
-
-        tzs = []
-        if ver == 'small':
-            tzs += pytz.country_timezones['US']
-            tzs += pytz.country_timezones['CA']
-            tzs += pytz.country_timezones['MX']
-        else:
-            ver = 'all'
-            tzs = pytz.common_timezones
+    def setUp(self):
+        # speed up unit tests by not rerunning
         try:
-            fp = open(f"results_year_rule_tz{ver}.p", "rb")
-            self.results_year_rule_tz = pickle.load(fp)
+            fp = open(f"IANA_tz_db_source_file_parsing_Tests.p", "rb")
+            self.links, self.offset, self.rules = self.results_year_rule_tz = pickle.load(fp)
             fp.close()
-            fp = open(f"results_year_tz_codedrule{ver}.p", "rb")
-            self.results_year_tz_codedrule = pickle.load(fp)
+            print('from cache')
+        except Exception as e:
+            print(e)
+            self.links, self.offset, self.rules = parse_rules_file()
+            fp = open(f"IANA_tz_db_source_file_parsing_Tests.p", "wb")
+            pickle.dump((self.links, self.offset, self.rules), fp)
             fp.close()
-        except:
-            self.results_year_rule_tz, self.results_year_tz_codedrule = timezone_rules(tzs)
-            fp = open(f"results_year_rule_tz{ver}.p", "wb")
-            pickle.dump(self.results_year_rule_tz, fp)
-            fp.close()
-            fp = open(f"results_year_tz_codedrule{ver}.p", "wb")
-            pickle.dump(self.results_year_tz_codedrule, fp)
-            fp.close()
+            print("reparsed")
+
+    # def setUp_old(self):
+    #     # return results_rule_tz_years, results_year_rule_tz
+    #     ver = 'all'
+    #
+    #     tzs = []
+    #     if ver == 'small':
+    #         tzs += pytz.country_timezones['US']
+    #         tzs += pytz.country_timezones['CA']
+    #         tzs += pytz.country_timezones['MX']
+    #     else:
+    #         ver = 'all'
+    #         tzs = pytz.common_timezones
+    #     try:
+    #         fp = open(f"results_year_rule_tz{ver}.p", "rb")
+    #         self.results_year_rule_tz = pickle.load(fp)
+    #         fp.close()
+    #         fp = open(f"results_year_tz_codedrule{ver}.p", "rb")
+    #         self.results_year_tz_codedrule = pickle.load(fp)
+    #         fp.close()
+    #     except:
+    #         self.results_year_rule_tz, self.results_year_tz_codedrule = timezone_rules(tzs)
+    #         fp = open(f"results_year_rule_tz{ver}.p", "wb")
+    #         pickle.dump(self.results_year_rule_tz, fp)
+    #         fp.close()
+    #         fp = open(f"results_year_tz_codedrule{ver}.p", "wb")
+    #         pickle.dump(self.results_year_tz_codedrule, fp)
+    #         fp.close()
 
     def test_navajo_nation(self):
         navajo_nation()
@@ -85,9 +99,16 @@ class MappingUnitTests(unittest.TestCase):
                     world=False, label=True, title=year)
 
     def test_plot_world_tz_rules(self):
-        for year in range(1908, 1916):
-            plottzs(ruledata=self.results_year_tz_codedrule[year],
-                    world=True, label=False, title=year)
+        # print(self.rules.keys())
+        yearmapping={}
+        for year in tqdm(range(1915, 2022)):
+            yearmapping[year]={}
+            for tz in self.rules.keys():
+                # print(tz, list(self.rules[tz].keys()))
+                if year in self.rules[tz].keys():
+                    if 'dst' in self.rules[tz][year].keys():
+                        yearmapping[year][tz]=self.rules[tz][year]['dst']['ord'][1]
+            plottzs(ruledata=yearmapping[year], world=True, label=False, title=year)
 
     @unittest.skip("unneeded")
     def test_custom_colorbar(self):
@@ -142,6 +163,7 @@ class IANA_tz_db_source_file_parsing_Tests(unittest.TestCase):
         self.assertTrue('America/New_York' in self.rules)
         self.assertTrue('America/Denver' in self.rules)
         self.assertTrue('Europe/London' in self.rules)
+        pprint(self.rules['Africa/Abidjan'])
         pprint(self.rules['Pacific/Fiji'])
 
 
@@ -164,23 +186,3 @@ class ZDumpParsingUnitTests(unittest.TestCase):
         foo, foo2 = ordmonthday(datetime(2021, 11, 7, 2))
         self.assertEqual(foo, '1st Sun in Nov 02:00:00')
         self.assertEqual(foo2, 11.010002)
-
-#
-# class fiximages(unittest.TestCase):
-#
-#     def test_crop(self):
-#         '''
-#         reformats world map images, retains 16:9, adds scale to bottom
-#         :return:
-#         '''
-#         im_scale = Image.open('scale.png')
-#         for year in tqdm(range(1915,2022)):
-#
-#             mappath=f'frames/world/world_{year}.png'
-#             newpath=f'frames/world_scale/world_{year}_scale.png'ls ffmpeg -i recording.mov -vf fps=5,scale=1200:-1,smartblur=ls=-0.5,crop=iw:ih-2:0:0 result.gif
-#
-#             im_map = Image.open(mappath)
-#             im_background = Image.new('RGB', (im_map.width, im_map.height), (255, 255, 255))
-#             im_background.paste(im_map, (0, -300), im_map)
-#             im_background.paste(im_scale, (0, im_map.height-im_scale.height), im_scale)
-#             im_background.save(newpath)
