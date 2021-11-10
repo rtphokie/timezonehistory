@@ -111,10 +111,10 @@ class MappingUnitTests(unittest.TestCase):
 
 
 class IANA_tz_db_source_file_parsing_Tests(unittest.TestCase):
-    def setUp(self) -> None:
+    def setUp(self):
         # speed up unit tests by not rerunning
         try:
-            fp = open(f"IANA_tz_db_source_file_parsing_Tests.p", "wb")
+            fp = open(f"IANA_tz_db_source_file_parsing_Tests.p", "rb")
             self.links, self.offset, self.rules = self.results_year_rule_tz = pickle.load(fp)
             fp.close()
             print('from cache')
