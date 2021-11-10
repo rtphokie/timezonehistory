@@ -8,10 +8,10 @@ The history of daylight saving actually exists on
 # Methodology
 
 ### DST history
-The timezone files in /etc/timezone (or  /usr/share/zoneinfo/) on Linux and Mac systems 
+Parsed from [Time Zone Database rules files](https://www.iana.org/time-zones) distributed by the by the Internet Assigned Numbers Authority (IANA) and maintained by  Paul Eggert (primary) and Tim Parenti (secondary).
+Note, these are also locally available on every Linux and Mac computer (Microsoft does their own thing) via the zdump command.  Syntax:
 
-The zdump command run on a given timezone outputs each time timekeeping changes, such as 
-Daylight saving began in Canada and the United States in 1918.
+    % zdump -v America/New_York
 
 ### DST Legislation
 
