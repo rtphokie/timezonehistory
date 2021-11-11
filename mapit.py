@@ -209,7 +209,7 @@ if __name__ == '__main__':
     links, offset, rules = parse_rules_file()
     yearmapping = {}
     tzmap={}
-    for year in tqdm(range(1918, 2022), desc='plotting maps'):
+    for year in tqdm(range(1915, 2022), desc='plotting maps'):
         yearmapping[year] = {}
         for tz in rules.keys():
             if year in rules[tz].keys():

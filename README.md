@@ -1,9 +1,8 @@
 Daylight Saving Time has been around since 1916 when Germany adopted the practice as a way to conserve fuel during World War I.  Since then it has been adopted, and abandoned, sometimes several times, worldwide.
 
-The story of daylight saving is bound in the story of timezones.  Prior to their introduction in the late 1800s, time was based on local noon (when the )
+The story of daylight saving is bound in the story of timezones.  Prior to their introduction in the late 1800s, time was based on local noon (when the the Sun is at its highest above the horizon)
 
-A standard for timezones is maintained by the Internet Assigned Numbers Authority (IANA) (see data sources below).  That database exists in various forms on most operating systems to aid in displaying 
-The history of daylight saving actually exists on 
+A standard for timezones is maintained by the Internet Assigned Numbers Authority (IANA) (see data sources below).  That database exists in various forms on most operating systems to aid in displaying dates in the past and future in your timezone and others.
 
 # Methodology
 

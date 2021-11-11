@@ -180,13 +180,13 @@ class IANA_tz_db_source_file_parsing_Tests(unittest.TestCase):
         self.assertTrue('America/Denver' in self.rules)
         self.assertTrue('Europe/London' in self.rules)
         prev = None
-        for year, data in self.rules['America/New_York'].items():
-            if 'dst' in data.keys() and data['dst']['ord'][0] != prev:
-                print(year, data['dst']['ord'][0], end=' ')
-                if 'st' in data.keys():
-                    print(data['st']['ord'][0], end='')
-                print()
-                prev = data['dst']['ord'][0]
+        uniquerules=set()
+        for tz in self.rules.keys():
+            for year, data in self.rules[tz].items():
+                if 'dst' in data.keys():
+                    uniquerules.add(data['dst']['ord'][0])
+        pprint(uniquerules)
+        print(len(uniquerules))
         # pprint(self.rules['America/New_York'])
 
 
