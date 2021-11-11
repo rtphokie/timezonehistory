@@ -4,6 +4,8 @@ The story of daylight saving is bound in the story of timezones.  Prior to their
 
 A standard for timezones is maintained by the Internet Assigned Numbers Authority (IANA) (see data sources below).  That database exists in various forms on most operating systems to aid in displaying dates in the past and future in your timezone and others.
 
+![changes in DST starts over the years](world.gif)
+
 # Methodology
 
 ### DST history
