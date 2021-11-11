@@ -149,7 +149,7 @@ class IANA_tz_db_source_file_parsing_Tests(unittest.TestCase):
     def setUp(self):
         # speed up unit tests by not rerunning
         try:
-            raise
+            # raise
             fp = open(f"IANA_tz_db_source_file_parsing_Tests.p", "rb")
             self.links, self.offset, self.rules = self.results_year_rule_tz = pickle.load(fp)
             fp.close()
@@ -175,10 +175,19 @@ class IANA_tz_db_source_file_parsing_Tests(unittest.TestCase):
 
     def test_rules(self):
         self.assertGreaterEqual(9999, len(self.rules))
+        # pprint(self.rules.keys())
         self.assertTrue('America/New_York' in self.rules)
         self.assertTrue('America/Denver' in self.rules)
         self.assertTrue('Europe/London' in self.rules)
-        pprint(self.rules['America/Phoenix'])
+        prev = None
+        for year, data in self.rules['America/New_York'].items():
+            if 'dst' in data.keys() and data['dst']['ord'][0] != prev:
+                print(year, data['dst']['ord'][0], end=' ')
+                if 'st' in data.keys():
+                    print(data['st']['ord'][0], end='')
+                print()
+                prev = data['dst']['ord'][0]
+        # pprint(self.rules['America/New_York'])
 
 
 class ZDumpParsingUnitTests(unittest.TestCase):
