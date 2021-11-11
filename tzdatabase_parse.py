@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import timedelta
 from tqdm import tqdm
 
-pattern_zone = 'TZ="([\/\w]+)"'
+pattern_zone = 'TZ="([\_\-\/\w]+)"'
 pattern_link = 'Link\s+([+\/\w]+)\s+([_\/\w]+)'
 pattern_offset = '-\s-\s+([+\-])([+\-\d]+)\s*(\w*)'
 pattern_rule = '([\d\-]+)\s+\d+'
@@ -88,13 +88,20 @@ def parse_rules_file(filename='tzdb-2021e/to2050.tzs'):
                     rules[tz][prevyear] = {'st': {}}
                 rules[tz][prevyear]['st'] = {'dt':   dt, 'offset': atoms[2], 'utc_offset': newoffset, 'abbrev': atoms[3] if len(atoms) >= 4 else None,
                                              'line': line, 'ord': ordmonthday(dt), 'dst': dst}
+            thething=rules[tz]
             prevyear = dt.year
         elif rT:
-            tz = rT.group(1)
+            tz = rT.group(1).strip()
+            if 'Etc\/' not in tz:
+                tz=None
+            elif '/' not in tz:
+                tz=None
             prevyear = None
             offset[tz] = [0, 0, 0, 0]  # hours, minutes, seconds, total seconds
             rules[tz] = {}
 
+        if tz and 'America' in tz:
+            print(f"{tz:33} {line}")
         # else:
         #     print(f"{cnt:3}^{line}")
     return links, offset, rules

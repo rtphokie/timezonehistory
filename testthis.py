@@ -32,26 +32,68 @@ class MappingUnitTests(unittest.TestCase):
     def test_navajo_nation(self):
         navajo_nation()
 
-    def test_us_rules(self):
-        print(len(pytz.common_timezones))
-        print(len(set(self.results_year_rule_tz[2021])))
-        # pprint(sorted(set(self.results_year_rule_tz[2021])))
-        # for rule in self.results_year_rule_tz[2021].keys():
-        #     print(f"\n{rule}")
-        #     pprint(self.results_year_rule_tz[2021][rule])
-        #     print()
-        for year in self.results_year_tz_codedrule.keys():
-            print(year, self.results_year_tz_codedrule[year]['America/Denver'], self.results_year_tz_codedrule[year]['America/Boise'], )
+    def test_2021_rules(self):
+        print('common timezones', len(pytz.common_timezones))
+        #reindex by year
+        yearmapping={}
+        uniquerules=set()
+        for year in tqdm(range(1915, 2022), desc='plotting maps'):
+            yearmapping[year] = {}
+            for tz in self.rules.keys():
+                if year in self.rules[tz].keys():
+                    if 'dst' in self.rules[tz][year].keys():
+                        try:
+                            yearmapping[year][tz] = self.rules[tz][year]['dst']['ord'][1]
+                            uniquerules.add(self.rules[tz][year]['dst']['ord'][1])
+                        except Exception as e:
+                            print(e)
+                            pprint(self.rules[tz][year])
+        print('timezones observing DST in 2021    ', len(set(yearmapping[2021])))
+        print('timezones not observing DST in 2021',  len(pytz.common_timezones) - len(set(yearmapping[2021])))
+        print(f"{ (len(pytz.common_timezones) - len(set(yearmapping[2021])))/len(pytz.common_timezones):.04f}")
+        print('unique rules ', len(uniquerules))
 
     def test_metrics(self):
-        rules = set()
-        pprint(len(list(self.results_year_rule_tz[2021]['no DST'])))
-        for year in self.results_year_rule_tz.keys():
-            for rule in self.results_year_rule_tz[year].keys():
-                rules.add(rule)
-        print(len(rules))
-        print(len(pytz.common_timezones))
-        print(len(pytz.all_timezones))
+        tzmapping={}
+        tzmapping_years={}
+
+        sometzsometimetzs=set()
+        for tz in self.rules.keys():
+            if len(tz) < 4:
+                continue
+            if 'Phoenix' in tz:
+                fokljahslioawero='123'
+                pass
+            tzmapping[tz]=[0.0]
+            tzmapping_years[tz]=[1915]
+            da=tzmapping[tz]
+            prevyear=2018
+            for year in self.rules[tz].keys():
+                if 'dst' in self.rules[tz][year].keys():
+                    sometzsometimetzs.add(tz)
+                    rulecode = self.rules[tz][year]['dst']['ord'][0]
+                else:
+                    rulecode=0
+                if prevyear != year -1: # skipped years means they stayed off DST
+                    rulecode = 0
+                if tzmapping[tz][-1] != rulecode:
+                    tzmapping[tz].append(rulecode)
+                    tzmapping_years[tz].append(year)
+                prevyear=year
+
+        foo = dict(zip(tzmapping_years['Asia/Tehran'], tzmapping['Asia/Tehran']))
+        foo = dict(zip(tzmapping_years['America/Honolulu'], tzmapping['America/Honolulu']))
+        pprint(foo)
+        record=set()
+        total=0
+        for tz in tzmapping_years:
+            # print(f"{tz:40} {len(tzmapping_years[tz])-1}")
+            total+=len(tzmapping_years[tz])-1
+            record.add(len(tzmapping_years[tz])-1)
+        print(len(sometzsometimetzs))
+        print(max(record))
+        print(total)
+
 
     def test_tzs(self):
         for tz in ['US', 'CA', 'MX']:
@@ -107,6 +149,7 @@ class IANA_tz_db_source_file_parsing_Tests(unittest.TestCase):
     def setUp(self):
         # speed up unit tests by not rerunning
         try:
+            raise
             fp = open(f"IANA_tz_db_source_file_parsing_Tests.p", "rb")
             self.links, self.offset, self.rules = self.results_year_rule_tz = pickle.load(fp)
             fp.close()
@@ -135,8 +178,7 @@ class IANA_tz_db_source_file_parsing_Tests(unittest.TestCase):
         self.assertTrue('America/New_York' in self.rules)
         self.assertTrue('America/Denver' in self.rules)
         self.assertTrue('Europe/London' in self.rules)
-        pprint(self.rules['Africa/Abidjan'])
-        pprint(self.rules['Pacific/Fiji'])
+        pprint(self.rules['America/Phoenix'])
 
 
 class ZDumpParsingUnitTests(unittest.TestCase):

@@ -106,7 +106,7 @@ def plottzs(label=False, world=False, title=None, ruledata=None, dpi=120):
 
     for tz in list(gdf['TZID']):
         if tz not in ruledata.keys():
-            ruledata[tz]=0
+            ruledata[tz] = 0
 
     gdf['rule'] = gdf.apply(lambda row: ruledata[row['TZID']], axis=1)
     gdf['nodst'] = gdf['rule'].copy()
@@ -154,8 +154,8 @@ def plottzs(label=False, world=False, title=None, ruledata=None, dpi=120):
     ax.set_axis_off()
     plt.tight_layout()
     if world:
-        filename=f'frames/world/world_{dpi:04}_{title:04}.png'
-        plt.savefig(filename,dpi=dpi)
+        filename = f'frames/world/world_{dpi:04}_{title:04}.png'
+        plt.savefig(filename, dpi=dpi)
         im_scale = Image.open('scale_1920.png')
         newpath = f'frames/world_scale/world_{dpi:04}_{title}_scale.png'
         im_map = Image.open(filename)
@@ -169,8 +169,6 @@ def plottzs(label=False, world=False, title=None, ruledata=None, dpi=120):
     del fig
 
 
-
-
 def visualize_dst_legislation():
     fig, ax = plt.subplots(figsize=(16, 9))
     #
@@ -178,14 +176,13 @@ def visualize_dst_legislation():
     aeqd = pyproj.Proj(proj='aeqd', ellps='WGS84', datum='WGS84', lat_0=39.0, lon_0=-98.5).srs
     gdf = gdf.to_crs(crs=aeqd)  # switch to mercator projection around US centroid
 
-
-
     # map legislation status onto a new column
     df['LEG'] = df['NAME'].str.lower().map(legislation)
 
     df.plot(cmap='viridis', column='LEG', ax=ax, edgecolor='black')
     plt.tight_layout()
     plt.savefig('dst_legislation.png', dpi=600)
+
 
 def navajo_nation():
     ''' data source, US Census Bureau'''
@@ -201,9 +198,6 @@ def navajo_nation():
     print(gdf_sw)
     print(states)
 
-    # map legislation status onto a new column
-    # df['LEG'] = df['NAME'].str.lower().map(legislation)
-
     gdf_sw.plot(cmap='Accent', column='TZ', ax=ax, edgecolor='black', alpha=0.8)
     plt.tight_layout()
     # plt.savefig('navajo_nation.png', dpi=600)
@@ -213,17 +207,19 @@ def navajo_nation():
 
 if __name__ == '__main__':
     links, offset, rules = parse_rules_file()
-
     yearmapping = {}
-    for year in tqdm(range(1915, 2022), desc='plotting maps'):
+    tzmap={}
+    for year in tqdm(range(1918, 2022), desc='plotting maps'):
         yearmapping[year] = {}
         for tz in rules.keys():
             if year in rules[tz].keys():
+                thething=rules[tz]
                 if 'dst' in rules[tz][year].keys():
                     try:
                         yearmapping[year][tz] = rules[tz][year]['dst']['ord'][1]
+                        tzmap[tz]=rules[tz][year]['dst']['ord'][0]
                     except Exception as e:
                         print(e)
-                        pprint(rules[tz][year])
+                        pprint(year, rules[tz][year])
         plottzs(ruledata=yearmapping[year], world=False, label=False, title=year)
         plottzs(ruledata=yearmapping[year], world=True, label=False, title=year)
